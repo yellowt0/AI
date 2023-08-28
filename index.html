@@ -1,0 +1,96 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Capture & Save</title>
+</head>
+<body>
+    <video id="video" width="1024" height="1024" autoplay></video>
+    <canvas id="canvas" width="256" height="256"></canvas>
+    <img id="canvas2" src="" width="256" height="256"></img>
+    <img id="canvas3" src="" width="256" height="256"></img>
+    <button onclick="snap()">Capture</button>
+    <button onclick="removee()">removeBG</button>
+    <button onclick="dalle()">AI_Generate</button>
+
+
+   
+    <script>
+        let video = document.getElementById('video');
+let canvas = document.getElementById('canvas');
+
+let context = canvas.getContext('2d');
+
+navigator.mediaDevices.getUserMedia({ video: true })
+    .then(function(stream) {
+        video.srcObject = stream;
+        video.play();
+    })
+    .catch(function(error) {
+        console.error("Error accessing the camera.", error);
+    });
+
+function snap() {
+    context.drawImage(video, 0, 0, 512, 512, 0, 0, 256, 256);
+    let imageData = canvas.toDataURL('image/png');
+
+    fetch('/save-image', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ imageData: imageData })
+    })
+    .then(response => response.text())
+    .then(console.log);  // Log the server response (e.g. "Image saved.")
+};
+
+function removee(){
+ 
+    fetch('/remove-bg', {
+        method: 'POST', // or POST, PUT, DELETE, etc. depending on your API
+        headers: {
+            'Content-Type': 'application/json'
+            // other headers as required by your API
+        },
+        // body: JSON.stringify({ key: 'value' })  // if you need to send data in the request
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('canvas2').src = data.imgData;
+        
+    })
+    .catch(error => {
+        console.error("Error calling the API:", error);
+    });
+
+
+};
+
+function dalle(){
+ 
+ fetch('/dalle', {
+     method: 'POST', // or POST, PUT, DELETE, etc. depending on your API
+     headers: {
+         'Content-Type': 'application/json'
+         // other headers as required by your API
+     },
+     // body: JSON.stringify({ key: 'value' })  // if you need to send data in the request
+ })
+ .then(response => response.json())
+ .then(data => {
+     document.getElementById('canvas3').src = data.imageUrl;
+     
+ })
+ .catch(error => {
+     console.error("Error calling the API:", error);
+ });
+
+
+};
+
+
+
+    </script>
+</body>
+</html>
